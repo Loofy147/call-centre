@@ -1,0 +1,6 @@
+transformers
+torch
+librosa
+webrtcvad-wheels
+soundfile
+numpy
