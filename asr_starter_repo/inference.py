@@ -72,11 +72,22 @@ def normalize_text(text):
     # Add more normalization rules here if needed
     return text
 
+import json
+
 def main():
     parser = argparse.ArgumentParser(description="ASR inference script.")
     parser.add_argument("--model-name", type=str, default="openai/whisper-tiny", help="Name of the Hugging Face model to use.")
-    parser.add_argument("--audio-file", type=str, required=True, help="Path to the audio file to transcribe.")
+    parser.add_argument("--audio-file", type=str, help="Path to the audio file to transcribe.")
+    parser.add_argument("--text-file", type=str, help="Path to a text file to use as input.")
     args = parser.parse_args()
+
+    if args.text_file:
+        with open(args.text_file, 'r', encoding='utf-8') as f:
+            text = f.read()
+        with open('transcript.json', 'w', encoding='utf-8') as f:
+            json.dump({'text': text}, f, ensure_ascii=False, indent=4)
+        print("transcript.json created.")
+        return
 
     # Load model and processor
     print(f"Loading model: {args.model_name}")
