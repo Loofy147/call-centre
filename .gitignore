@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Data files
+data/merged_dataset.csv
+data/comprehensive_algerian_call_center_dataset.csv
+data/comments.txt
+
+# Logs and artifacts
+*.log
+transcription.txt

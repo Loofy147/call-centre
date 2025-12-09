@@ -1,0 +1,7 @@
+transformers
+torch
+librosa
+webrtcvad-wheels
+pandas
+openpyxl
+jiwer
