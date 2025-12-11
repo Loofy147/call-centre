@@ -32,7 +32,7 @@ Key aspects of the code design include:
 
 ## Dataset Requirements and Implementation
 
-The current implementation of the NLU (Natural Language Understanding) components—specifically, the intent classifier and language detector—is **rule-based**. This provides a functional baseline but has limitations in terms of scalability and its ability to handle diverse user inputs.
+The current implementation of the NLU (Natural Language Understanding) components—specifically, the intent classifier—is **machine learning-based**, using a powerful zero-shot classification model. This provides a robust and scalable foundation for understanding user intent. The language detector remains rule-based.
 
 To improve the system's accuracy and robustness, the following datasets would be required to train more advanced, machine learning-based models:
 

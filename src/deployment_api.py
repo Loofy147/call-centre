@@ -3,7 +3,7 @@ Production API Server for Algerian Voice Agent System
 FastAPI-based REST API with WhatsApp integration
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
@@ -82,9 +82,13 @@ app = FastAPI(
 )
 
 # CORS middleware
+allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
+if not allowed_origins:
+    allowed_origins = [] # Default to a restrictive policy
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -242,21 +246,19 @@ async def process_text_message(request: TextMessageRequest):
 @app.post("/api/v1/message/voice")
 async def process_voice_message(
     audio: UploadFile = File(...),
-    customer_id: str = "default",
-    tenant_id: str = "demo_tenant",
-    conversation_id: Optional[str] = None
+    customer_id: str = Form("default"),
+    tenant_id: str = Form("demo_tenant"),
+    conversation_id: Optional[str] = Form(None)
 ):
     """
     Process voice message from customer
 
     Endpoint for phone calls, voice messages
     """
-
+    temp_audio_path = f"/tmp/audio_{uuid.uuid4()}.wav"
     try:
         # Save uploaded audio temporarily
         audio_bytes = await audio.read()
-        temp_audio_path = f"/tmp/audio_{uuid.uuid4()}.wav"
-
         with open(temp_audio_path, 'wb') as f:
             f.write(audio_bytes)
 
@@ -277,6 +279,10 @@ async def process_voice_message(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Cleanup the temporary file
+        if os.path.exists(temp_audio_path):
+            os.remove(temp_audio_path)
 
 
 @app.post("/api/v1/reservation/create")

@@ -39,33 +39,3 @@ class AlgerianLanguageDetector:
             contains_french=french_count > 0,
             confidence=min((darija_count + french_count) / max(len(tokens), 1), 1.0)
         )
-
-class IntentClassifier:
-    """Classifies customer intent from text"""
-
-    INTENT_KEYWORDS = {
-        IntentType.RESERVATION: ['حجز', 'reservation', 'rendez-vous', 'موعد', 'نحجز', 'طاولة'],
-        IntentType.INQUIRY: ['معلومات', 'information', 'واش', 'كيفاش', 'how'],
-        IntentType.COMPLAINT: ['شكوى', 'plainte', 'مشكل', 'problème'],
-        IntentType.TOXIC: ['كلب', 'حمار', 'خونة', 'زبالة', 'dog', 'stupid']
-    }
-
-    def classify(self, text: str, context: Optional[ConversationContext] = None) -> Intent:
-        text_lower = text.lower()
-
-        if any(keyword in text_lower for keyword in self.INTENT_KEYWORDS[IntentType.TOXIC]):
-            return Intent(type=IntentType.TOXIC, confidence=0.95)
-
-        scores = {
-            intent_type: sum(1 for kw in keywords if kw in text_lower)
-            for intent_type, keywords in self.INTENT_KEYWORDS.items()
-            if intent_type != IntentType.TOXIC
-        }
-
-        if not any(scores.values()):
-            return Intent(type=IntentType.INQUIRY, confidence=0.3)
-
-        max_intent = max(scores, key=scores.get)
-        confidence = min(scores[max_intent] / len(self.INTENT_KEYWORDS[max_intent]), 1.0)
-
-        return Intent(type=max_intent, confidence=confidence)

@@ -7,7 +7,8 @@ from typing import Dict, List, Optional, Any
 from dataclasses import asdict
 import redis
 from src.models import ConversationContext, LanguageContext, Language
-from src.classifiers import AlgerianLanguageDetector, IntentClassifier
+from src.classifiers import AlgerianLanguageDetector
+from src.ml_classifier import MLIntentClassifier
 from src.entity_extractor import EntityExtractor
 from src.response_generator import ResponseGenerator
 
@@ -17,11 +18,10 @@ class AlgerianAgentOrchestrator:
     def __init__(self, tenant_config: Dict, redis_client=None):
         self.tenant_config = tenant_config
         self.language_detector = AlgerianLanguageDetector()
-        self.intent_classifier = IntentClassifier()
+        self.intent_classifier = MLIntentClassifier()
         self.entity_extractor = EntityExtractor()
         self.response_generator = ResponseGenerator(tenant_config)
         self.redis_client = redis_client
-        self.sessions: Dict[str, ConversationContext] = {}
 
     async def process_message(self, message: str, customer_id: str, tenant_id: str, conversation_id: Optional[str] = None) -> Dict[str, Any]:
         context = await self._get_or_create_context(conversation_id, tenant_id, customer_id)
@@ -30,7 +30,7 @@ class AlgerianAgentOrchestrator:
         lang_ctx = self.language_detector.detect(message)
         context.language_context = lang_ctx
 
-        intent = self.intent_classifier.classify(message, context)
+        intent = self.intent_classifier.classify(message)
         context.intent_history.append(intent)
 
         entities = self.entity_extractor.extract(message, intent)
