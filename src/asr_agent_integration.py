@@ -18,6 +18,23 @@ from src.inference import vad_split, transcribe_audio, normalize_text
 # Import agent core
 from src.orchestrator import AlgerianAgentOrchestrator
 
+# ⚡ Bolt Optimization: Global cache for ASR models.
+# This prevents reloading the model from disk on every pipeline instantiation,
+# which is a very slow operation.
+_asr_model_cache = {}
+
+def _load_asr_model(model_name: str) -> Tuple[WhisperProcessor, WhisperForConditionalGeneration]:
+    """Loads ASR model from cache or from Hugging Face if not cached."""
+    if model_name in _asr_model_cache:
+        print(f"Loading ASR model from cache: {model_name}")
+        return _asr_model_cache[model_name]
+
+    print(f"Loading and caching ASR model: {model_name}")
+    processor = WhisperProcessor.from_pretrained(model_name)
+    model = WhisperForConditionalGeneration.from_pretrained(model_name)
+    _asr_model_cache[model_name] = (processor, model)
+    return processor, model
+
 
 class VoiceAgentPipeline:
     """
@@ -37,10 +54,8 @@ class VoiceAgentPipeline:
             asr_model_name: Hugging Face model name for ASR
             tenant_config: Business configuration for agent
         """
-        # Load ASR components
-        print(f"Loading ASR model: {asr_model_name}")
-        self.asr_processor = WhisperProcessor.from_pretrained(asr_model_name)
-        self.asr_model = WhisperForConditionalGeneration.from_pretrained(asr_model_name)
+        # Load ASR components using the caching mechanism
+        self.asr_processor, self.asr_model = _load_asr_model(asr_model_name)
 
         # Initialize agent
         self.tenant_config = tenant_config or self._default_tenant_config()
