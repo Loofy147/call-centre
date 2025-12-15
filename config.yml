@@ -1,0 +1,27 @@
+
+# Configuration for the Algerian Call Center ASR
+
+asr_model:
+  name: "openai/whisper-small"
+  language: "ar"
+
+vad:
+  aggressiveness: 3
+  frame_duration_ms: 30
+
+data_paths:
+  # Input datasets
+  toxicity_dataset: "data/AlgD_Toxicity_Speech_Dataset.xlsx"
+  call_center_dataset: "data/algerian_call_center_dataset.csv"
+  new_entries_dataset: "data/new_commercial_entries.csv"
+
+  # Intermediate files
+  comments_file: "data/comments.txt"
+  merged_dataset: "data/merged_dataset.csv"
+
+  # Final output
+  final_dataset: "data/comprehensive_algerian_call_center_dataset.csv"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(levelname)s - %(message)s"

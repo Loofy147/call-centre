@@ -11,3 +11,5 @@ soundfile
 pytest
 locust
 prometheus-client
+pyyaml
+pandas

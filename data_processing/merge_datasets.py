@@ -1,40 +1,40 @@
 
 import pandas as pd
 import argparse
-import csv
+import logging
 
-def read_csv_robust(filepath):
-    """Reads a CSV file with potential parsing errors."""
-    with open(filepath, 'r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        data = list(reader)
-
-    # Find the maximum number of columns
-    max_cols = 0
-    for row in data:
-        if len(row) > max_cols:
-            max_cols = len(row)
-
-    # Pad rows with fewer columns
-    for row in data:
-        while len(row) < max_cols:
-            row.append('')
-
-    # Pad header if necessary
-    while len(header) < max_cols:
-        header.append(f'Unnamed: {len(header)}')
-
-    df = pd.DataFrame(data, columns=header)
-    return df
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def main(file1, file2, output_file):
-    """Merges two CSV files into a single file using a robust method."""
-    df1 = read_csv_robust(file1)
-    df2 = read_csv_robust(file2)
+    """Merges two CSV files into a single file using a robust pandas method."""
+    logging.info(f"Starting merge process for {file1} and {file2}")
 
-    df = pd.concat([df1, df2], ignore_index=True)
-    df.to_csv(output_file, index=False)
+    try:
+        # Reading CSVs with pandas, which is more robust and provides warnings for bad lines.
+        # The 'python' engine is required for the on_bad_lines parameter.
+        logging.info(f"Reading {file1}...")
+        df1 = pd.read_csv(file1, on_bad_lines='warn', engine='python')
+        logging.info(f"Finished reading {file1}. Shape: {df1.shape}")
+
+        logging.info(f"Reading {file2}...")
+        df2 = pd.read_csv(file2, on_bad_lines='warn', engine='python')
+        logging.info(f"Finished reading {file2}. Shape: {df2.shape}")
+
+        # Concatenate the dataframes
+        logging.info("Concatenating dataframes...")
+        df = pd.concat([df1, df2], ignore_index=True)
+        logging.info(f"Concatenated dataframe shape: {df.shape}")
+
+        # Save the merged dataframe
+        logging.info(f"Saving merged file to {output_file}...")
+        df.to_csv(output_file, index=False)
+        logging.info(f"Successfully merged and saved data to {output_file}")
+
+    except FileNotFoundError as e:
+        logging.error(f"Error: {e}. Please check the file paths.")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge two CSV files.")

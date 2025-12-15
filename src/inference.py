@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 from typing import List, Dict, Tuple
+import re
 
 # Helper function to read audio files
 def read_wave(path: str) -> Tuple[bytes, int]:
@@ -14,7 +15,7 @@ def read_wave(path: str) -> Tuple[bytes, int]:
     pcm_data = (audio * 32767).astype(np.int16).tobytes()
     return pcm_data, sample_rate
 
-def vad_split(audio_path: str, aggressiveness: int = 3) -> Tuple[np.ndarray, List[Dict[str, int]]]:
+def vad_split(audio_path: str, aggressiveness: int = 3, frame_duration_ms: int = 30) -> Tuple[np.ndarray, List[Dict[str, int]]]:
     """
     Performs Voice Activity Detection (VAD) on an audio file and splits it into speech chunks.
     """
@@ -23,7 +24,6 @@ def vad_split(audio_path: str, aggressiveness: int = 3) -> Tuple[np.ndarray, Lis
 
     vad = webrtcvad.Vad(aggressiveness)
 
-    frame_duration_ms = 30  # ms
     frame_samples = int(sample_rate * frame_duration_ms / 1000)
 
     speech_chunks = []
@@ -86,9 +86,23 @@ def transcribe_audio(model: WhisperForConditionalGeneration, processor: WhisperP
 
 def normalize_text(text: str) -> str:
     """
-    Normalizes the transcribed text (e.g., lowercase, remove punctuation).
+    Advanced text normalization for multilingual ASR, especially for Arabic dialects.
     """
-    # This is a simple normalization. More advanced techniques could be used.
+    # Lowercase the text
     text = text.lower()
-    text = text.replace(",", "").replace(".", "").replace("?", "").replace("!", "")
+
+    # Remove punctuation
+    text = re.sub(r'[^\w\s]', '', text)
+
+    # Normalize whitespace to a single space
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    # Remove Arabic diacritics
+    text = re.sub(r'[\u064B-\u0652]', '', text)
+
+    # Normalize Arabic characters to their basic forms
+    text = text.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
+    text = text.replace('ة', 'ه')
+    text = text.replace('ى', 'ي')
+
     return text
