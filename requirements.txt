@@ -13,3 +13,6 @@ locust
 prometheus-client
 pyyaml
 pandas
+scikit-learn
+jiwer
+gTTS

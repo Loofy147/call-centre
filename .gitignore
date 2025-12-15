@@ -16,7 +16,9 @@ Thumbs.db
 data/merged_dataset.csv
 data/comprehensive_algerian_call_center_dataset.csv
 data/comments.txt
+data/audio_dataset/
 
 # Logs and artifacts
 *.log
 transcription.txt
+evaluation_results/
