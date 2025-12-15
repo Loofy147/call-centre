@@ -5,6 +5,8 @@ import numpy as np
 import torch
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 from typing import List, Dict, Tuple
+import re
+import unicodedata
 
 # Helper function to read audio files
 def read_wave(path: str) -> Tuple[bytes, int]:
@@ -86,9 +88,26 @@ def transcribe_audio(model: WhisperForConditionalGeneration, processor: WhisperP
 
 def normalize_text(text: str) -> str:
     """
-    Normalizes the transcribed text (e.g., lowercase, remove punctuation).
+    Advanced text normalization for multilingual ASR, especially for Arabic dialects.
     """
-    # This is a simple normalization. More advanced techniques could be used.
+    # Lowercase the text
     text = text.lower()
-    text = text.replace(",", "").replace(".", "").replace("?", "").replace("!", "")
+
+    # Remove punctuation
+    text = re.sub(r'[^\w\s]', '', text)
+
+    # Normalize whitespace to a single space
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    # Remove Arabic diacritics
+    text = re.sub(r'[\u064B-\u0652]', '', text)
+
+    # Normalize Arabic characters to their basic forms
+    text = text.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
+    text = text.replace('ة', 'ه')
+    text = text.replace('ى', 'ي')
+
+    # Remove repetitive characters
+    text = re.sub(r'(.)\1+', r'\1', text)
+
     return text

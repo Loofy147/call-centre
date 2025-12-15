@@ -12,6 +12,7 @@ from typing import Optional, Dict, List, Tuple
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 import json
 from datetime import datetime
+import yaml
 
 from src.inference import vad_split, transcribe_audio, normalize_text
 
@@ -22,6 +23,15 @@ from src.orchestrator import AlgerianAgentOrchestrator
 # This prevents reloading the model from disk on every pipeline instantiation,
 # which is a very slow operation.
 _asr_model_cache = {}
+
+def load_config(config_path: str = "config.yml") -> Dict:
+    """Loads the YAML configuration file."""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except FileNotFoundError:
+        print(f"Error: Configuration file not found at {config_path}")
+        return {}
 
 def _load_asr_model(model_name: str) -> Tuple[WhisperProcessor, WhisperForConditionalGeneration]:
     """Loads ASR model from cache or from Hugging Face if not cached."""
@@ -44,16 +54,19 @@ class VoiceAgentPipeline:
 
     def __init__(
         self,
-        asr_model_name: str = "openai/whisper-small",
+        config: Dict,
         tenant_config: Optional[Dict] = None
     ):
         """
         Initialize voice agent pipeline
 
         Args:
-            asr_model_name: Hugging Face model name for ASR
+            config: System configuration dictionary
             tenant_config: Business configuration for agent
         """
+        self.config = config
+        asr_model_name = self.config.get('asr_model', {}).get('name', 'openai/whisper-small')
+
         # Load ASR components using the caching mechanism
         self.asr_processor, self.asr_model = _load_asr_model(asr_model_name)
 
@@ -148,8 +161,11 @@ class VoiceAgentPipeline:
     async def _transcribe_audio(self, audio_path: str) -> str:
         """Transcribe audio using Whisper ASR"""
 
+        vad_config = self.config.get('vad', {})
+        aggressiveness = vad_config.get('aggressiveness', 3)
+
         # Perform VAD and split
-        audio, speech_chunks = vad_split(audio_path)
+        audio, speech_chunks = vad_split(audio_path, aggressiveness=aggressiveness)
 
         if not speech_chunks:
             return "[No speech detected]"
@@ -316,6 +332,11 @@ class BatchVoiceProcessor:
 async def main():
     """Main execution for testing"""
 
+    config = load_config()
+    if not config:
+        print("Exiting due to missing configuration.")
+        return
+
     # Initialize pipeline
     tenant_config = {
         'tenant_id': 'algerian_telecom',
@@ -325,7 +346,7 @@ async def main():
     }
 
     pipeline = VoiceAgentPipeline(
-        asr_model_name="openai/whisper-small",
+        config=config,
         tenant_config=tenant_config
     )
 
@@ -337,7 +358,7 @@ async def main():
     # This would use actual audio file from your repo
     # result = await pipeline.process_voice_call(
     #     audio_path="sample_audio.wav",
-    #     customer_id="cust_001"
+    _    #     customer_id="cust_001"
     # )
 
     # Example 2: Batch processing
