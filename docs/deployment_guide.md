@@ -107,55 +107,6 @@ sudo systemctl start redis
 
 ## ⚙️ Configuration
 
-### Configuration File Structure
-
-Create `config/production.yaml`:
-
-```yaml
-# Agent Configuration
-agent:
-  default_language: "darija"
-  asr_model: "openai/whisper-small"
-  max_conversation_length: 50
-  session_timeout: 3600  # seconds
-
-# Redis Configuration
-redis:
-  host: "localhost"
-  port: 6379
-  db: 0
-  password: null
-
-# Tenant Configuration
-tenants:
-  restaurant_001:
-    business_name: "Restaurant El Bahja"
-    business_type: "restaurant"
-    language_preference: "darija"
-    operating_hours:
-      monday: {open: "11:00", close: "23:00"}
-      tuesday: {open: "11:00", close: "23:00"}
-
-  telecom_001:
-    business_name: "Algérie Télécom"
-    business_type: "telecommunications"
-    language_preference: "mixed"
-
-# WhatsApp Configuration
-whatsapp:
-  api_version: "v17.0"
-  phone_number_id: "YOUR_PHONE_NUMBER_ID"
-  business_account_id: "YOUR_BUSINESS_ACCOUNT_ID"
-  access_token: "YOUR_ACCESS_TOKEN"
-  webhook_verify_token: "YOUR_VERIFY_TOKEN"
-
-# Server Configuration
-server:
-  host: "0.0.0.0"
-  port: 8000
-  workers: 4
-  log_level: "info"
-```
 
 ### Environment Variables
 
@@ -278,21 +229,6 @@ print(result)
 
 ## 📊 Monitoring & Scaling
 
-### Prometheus Metrics
-
-Add to `src/deployment_api.py`:
-
-```python
-from prometheus_client import Counter, Histogram, generate_latest
-
-# Metrics
-request_count = Counter('agent_requests_total', 'Total requests')
-request_duration = Histogram('agent_request_duration_seconds', 'Request duration')
-
-@app.get("/metrics")
-async def metrics():
-    return Response(generate_latest(), media_type="text/plain")
-```
 
 ### Health Checks
 
@@ -329,7 +265,7 @@ services:
 ```python
 # tests/test_agent.py
 import pytest
-from agent_core import AlgerianLanguageDetector, IntentClassifier
+from src.classifiers import AlgerianLanguageDetector, IntentClassifier
 
 def test_language_detection():
     detector = AlgerianLanguageDetector()

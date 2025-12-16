@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Download models during build
+RUN python -c "from transformers import pipeline; pipeline('zero-shot-classification', model='MoritzLaurer/bge-m3-zeroshot-v2.0')"
 RUN python -c "from transformers import WhisperProcessor, WhisperForConditionalGeneration; \
     WhisperProcessor.from_pretrained('openai/whisper-small'); \
     WhisperForConditionalGeneration.from_pretrained('openai/whisper-small')"

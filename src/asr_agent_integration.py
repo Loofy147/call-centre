@@ -205,7 +205,7 @@ class VoiceAgentPipeline:
 
         # In production, integrate with TTS system
         # For now, return placeholder path
-        output_path = f"output/response_{datetime.now().timestamp()}.wav"
+        output_path = f"logs/response_{datetime.now().timestamp()}.wav"
 
         # Would generate actual audio here
         print(f"[TTS] Would generate audio: '{response_text}' -> {output_path}")
@@ -234,7 +234,7 @@ class BatchVoiceProcessor:
     async def process_dataset(
         self,
         dataset_path: str,
-        output_dir: str = "results",
+        output_dir: str = "logs",
         limit: Optional[int] = None
     ) -> List[Dict]:
         """
